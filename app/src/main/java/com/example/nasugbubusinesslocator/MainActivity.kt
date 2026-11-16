@@ -29,12 +29,16 @@ abstract class Business(
     val phone: String,
     val imageName: String,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
+    val photos: List<String> = listOf()
 ) {
     private val reviews = mutableListOf<Review>()
 
     fun addReview(review: Review) {
         reviews.add(review)
+    }
+    fun getAllPhotos(): List<String>{
+        return if (photos.isNotEmpty()) photos else listOf(imageName)
     }
 
     fun getReviews(): List<Review> {
@@ -60,8 +64,9 @@ class Resort(
     latitude: Double,
     longitude: Double,
     val hasBeachAccess: Boolean,
-    val entranceFee: Double
-) : Business(id, name, ownerName, address, barangay, "Resort", phone, imageName, latitude, longitude) {
+    val entranceFee: Double,
+    photos: List<String> = listOf()
+) : Business(id, name, ownerName, address, barangay, "Resort", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
         return "$name - Resort in $barangay | Entrance: P$entranceFee | Beach: $hasBeachAccess"
     }
@@ -77,8 +82,9 @@ class Restaurant(
     imageName: String,
     latitude: Double,
     longitude: Double,
-    val cuisineType: String
-) : Business(id, name, ownerName, address, barangay, "Food", phone, imageName, latitude, longitude) {
+    val cuisineType: String,
+    photos: List<String> = listOf()
+) : Business(id, name, ownerName, address, barangay, "Food", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
         return "$name - $cuisineType Restaurant in $barangay"
     }
@@ -94,8 +100,9 @@ class Shop(
     imageName: String,
     latitude: Double,
     longitude: Double,
-    val openingHours: String
-) : Business(id, name, ownerName, address, barangay, "Shop", phone, imageName, latitude, longitude) {
+    val openingHours: String,
+    photos: List<String> = listOf()
+) : Business(id, name, ownerName, address, barangay, "Shop", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
         return "$name - Shop in $barangay | Open: $openingHours"
     }
@@ -174,7 +181,7 @@ class BusinessDirectory {
     }
 
     fun loadNasugbuBusinesses() {
-        addBusiness(Resort(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "0917-000-0001", "kawayan_cove.jpg", 14.1350, 120.6150, true, 150.0))
+        addBusiness(Resort(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "0917-000-0001", "kawayan_cove.jpg", 14.1350, 120.6150, true, 150.0, photos = listOf("kawayan_cove.jpg, cawayan_cove.jpg")))
         addBusiness(Resort(2, "Fortune Island Resort", "Maria Santos", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "0917-000-0002", "fortune_island.jpg", 14.0580, 120.4870, true, 500.0))
         addBusiness(Resort(3, "Calayo Beach Resort", "Pedro Reyes", "Calayo, Nasugbu, Batangas", "Calayo", "0917-000-0003", "calayo.jpg", 14.1100, 120.6200, true, 100.0))
         addBusiness(Resort(4, "Wawa Beach Resort", "Jose Ramos", "Wawa, Nasugbu, Batangas", "Wawa", "0917-000-0004", "wawa.jpg", 14.0800, 120.6400, true, 80.0))
@@ -211,7 +218,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         recycler.layoutManager = LinearLayoutManager(this)
         adapter = BusinessAdapter(currentList) { business ->
             val pos = LatLng(business.latitude, business.longitude)
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
+            val cameraPosition = com.google.android.gms.maps.model.CameraPosition.Builder()
+                .target(pos)
+                .zoom(18f)
+                .tilt(45f)
+                .bearing(30f)
+                .build()
+            mMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition(cameraPosition))
             Toast.makeText(this, business.getDisplayInfo(), Toast.LENGTH_LONG).show()
         }
         recycler.adapter = adapter
@@ -252,12 +265,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         if (!::mMap.isInitialized) return
         mMap.clear()
         for (b in currentList) {
-            mMap.addMarker(MarkerOptions().position(LatLng(b.latitude, b.longitude)).title(b.name))
+            val marker = mMap.addMarker(MarkerOptions().position(LatLng(b.latitude, b.longitude)).title(b.name))
         }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.isBuildingsEnabled = true
+        mMap.uiSettings.isTiltGesturesEnabled = true
+        mMap.uiSettings.isRotateGesturesEnabled = true
+        mMap.uiSettings.isZoomGesturesEnabled = true
         showMarkers()
         val nasugbuCenter = LatLng(14.0900, 120.6000)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nasugbuCenter, 11.5f))

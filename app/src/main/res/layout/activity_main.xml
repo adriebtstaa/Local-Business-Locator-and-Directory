@@ -25,6 +25,23 @@
             android:text="Directory of Nasugbu, Batangas"
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/txtDashboardStats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📍 Loading businesses..."
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/txtTopRated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⭐ Top Rated: Loading..."
+            android:textColor="#FFEB3B"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <EditText
