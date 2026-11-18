@@ -224,7 +224,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 .tilt(45f)
                 .bearing(30f)
                 .build()
-            mMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition(cameraPosition))
+            mMap.animateCamera(
+                com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition(
+                    cameraPosition
+                )
+            )
             Toast.makeText(this, business.getDisplayInfo(), Toast.LENGTH_LONG).show()
         }
         recycler.adapter = adapter
@@ -233,6 +237,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             currentList = directory.search(text.toString())
             adapter.updateList(currentList)
             showMarkers()
+
         }
 
         findViewById<Button>(R.id.btnAll).setOnClickListener { filterCategory("All") }
@@ -249,7 +254,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             if (currentList.isNotEmpty()) {
                 val firstBusiness = currentList[0]
                 currentGuest.postComment(firstBusiness, "Beautiful place! I loved it!", 5)
-                Toast.makeText(this, "Guest rated ${firstBusiness.name}: ${firstBusiness.getAverageRating()} stars", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Guest rated ${firstBusiness.name}: ${firstBusiness.getAverageRating()} stars",
+                    Toast.LENGTH_SHORT
+                ).show()
                 adapter.updateList(currentList)
             }
         }
@@ -265,12 +274,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         if (!::mMap.isInitialized) return
         mMap.clear()
         for (b in currentList) {
-            val marker = mMap.addMarker(MarkerOptions().position(LatLng(b.latitude, b.longitude)).title(b.name))
+            val marker = mMap.addMarker(
+                MarkerOptions().position(LatLng(b.latitude, b.longitude)).title(b.name)
+            )
+            marker?.tag = b
         }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.setOnMarkerClickListener { marker ->
+            val business = marker.tag as? Business
+            if (business != null) {
+                showBusinessInfo(business)
+            }
+            true
+        }
         mMap.isBuildingsEnabled = true
         mMap.uiSettings.isTiltGesturesEnabled = true
         mMap.uiSettings.isRotateGesturesEnabled = true
@@ -279,30 +298,42 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val nasugbuCenter = LatLng(14.0900, 120.6000)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nasugbuCenter, 11.5f))
     }
-}
 
-class BusinessAdapter(private var list: List<Business>, private val onClick: (Business) -> Unit) : RecyclerView.Adapter<BusinessAdapter.ViewHolder>() {
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val name: TextView = view.findViewById(android.R.id.text1)
-        val desc: TextView = view.findViewById(android.R.id.text2)
+    private fun showBusinessInfo(business: Business) {
+        val builder = android.app.AlertDialog.Builder(this)
+        builder.setTitle(business.name)
+        builder.setMessage(business.getDisplayInfo())
+        builder.setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
+        builder.show()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_2, parent, false)
-        return ViewHolder(view)
-    }
+    class BusinessAdapter(
+        private var list: List<Business>,
+        private val onClick: (Business) -> Unit
+    ) : RecyclerView.Adapter<BusinessAdapter.ViewHolder>() {
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val name: TextView = view.findViewById(android.R.id.text1)
+            val desc: TextView = view.findViewById(android.R.id.text2)
+        }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val b = list[position]
-        holder.name.text = "${b.name} - ${String.format("%.1f", b.getAverageRating())} stars"
-        holder.desc.text = "${b.category} | ${b.address}"
-        holder.itemView.setOnClickListener { onClick(b) }
-    }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(android.R.layout.simple_list_item_2, parent, false)
+            return ViewHolder(view)
+        }
 
-    override fun getItemCount() = list.size
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val b = list[position]
+            holder.name.text = "${b.name} - ${String.format("%.1f", b.getAverageRating())} stars"
+            holder.desc.text = "${b.category} | ${b.address}"
+            holder.itemView.setOnClickListener { onClick(b) }
+        }
 
-    fun updateList(newList: List<Business>) {
-        list = newList
-        notifyDataSetChanged()
+        override fun getItemCount() = list.size
+
+        fun updateList(newList: List<Business>) {
+            list = newList
+            notifyDataSetChanged()
+        }
     }
 }
