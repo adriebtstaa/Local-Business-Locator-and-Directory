@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    OPTIONAL IDEA, not needed by your current code.
+    A bottom card that replaces the AlertDialog when a business is clicked.
+    To use it, paste this MaterialCardView inside activity_main.xml (before the last closing tag).
+-->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/infoCard"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    android:visibility="gone"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="150dp">
+
+            <ImageView
+                android:id="@+id/imgBusiness"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#E0F2F1"
+                android:contentDescription="@string/business_photo"
+                android:scaleType="centerCrop" />
+
+            <ImageButton
+                android:id="@+id/btnCloseInfo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="#80000000"
+                android:contentDescription="@string/close"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#FFFFFF" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvInfoName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#212121"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvInfoCategoryRating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#00796B"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvInfoDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingExtra="4dp"
+                android:textColor="#424242"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                style="?android:attr/buttonBarStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCall"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/call" />
+
+                <Button
+                    android:id="@+id/btnDirections"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/directions" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,123 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    Ids used by your MainActivity code, all included here:
+    map, searchEditText, btnAll, btnResort, btnFood, btnMarket,
+    recyclerBusiness, btnOwnerSignUp, btnGuestComment
+    The panel (searchPanel) is hidden until the search bar is tapped.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:fitsSystemWindows="true">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#00695C">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="NASUGBU BUSINESS LOCATOR"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Directory of Nasugbu, Batangas"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/txtDashboardStats"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="📍 Loading businesses..."
-            android:textColor="#FFFFFF"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/txtTopRated"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⭐ Top Rated: Loading..."
-            android:textColor="#FFEB3B"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <EditText
-        android:id="@+id/searchEditText"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_margin="12dp"
-        android:hint="Search business or barangay..." />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp">
-
-        <Button
-            android:id="@+id/btnAll"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:text="ALL" />
-
-        <Button
-            android:id="@+id/btnResort"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:text="RESORT" />
-
-        <Button
-            android:id="@+id/btnFood"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:text="FOOD" />
-
-        <Button
-            android:id="@+id/btnMarket"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:text="SHOP" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <Button
-            android:id="@+id/btnOwnerSignUp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:text="Owner Sign Up" />
-
-        <Button
-            android:id="@+id/btnGuestComment"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:text="Guest: Rate 5 Stars" />
-    </LinearLayout>
-
+    <!-- Map -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="match_parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerBusiness"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    <!-- Search bar at the top -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/searchCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/search"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="#00796B" />
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:autofillHints=""
+                android:background="@null"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Panel: categories first, then the business list -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/searchPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:visibility="gone"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCard">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Category buttons (scroll sideways on small screens) -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <Button
+                        android:id="@+id/btnAll"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/category_all" />
+
+                    <Button
+                        android:id="@+id/btnResort"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/category_resorts" />
+
+                    <Button
+                        android:id="@+id/btnFood"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/category_food" />
+
+                    <Button
+                        android:id="@+id/btnMarket"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/category_shops" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Businesses (your adapter uses simple_list_item_2, so no row layout is needed) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerBusiness"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:clipToPadding="false" />
+
+            <!-- Your two existing buttons -->
+            <LinearLayout
+                style="?android:attr/buttonBarStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <Button
+                    android:id="@+id/btnOwnerSignUp"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/owner_sign_up" />
+
+                <Button
+                    android:id="@+id/btnGuestComment"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/guest_comment" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

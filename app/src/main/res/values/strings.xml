@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">NasugbuBusinessLocator</string>
+    <string name="business_photo">Business photo</string>
+    <string name="close">Close</string>
+    <string name="call">Call</string>
+    <string name="directions">Directions</string>
+    <string name="search">Search</string>
+    <string name="search_hint">Search business or barangay</string>
+    <string name="category_all">All</string>
+    <string name="category_resorts">Resorts</string>
+    <string name="category_food">Food</string>
+    <string name="category_shops">Shops</string>
+    <string name="owner_sign_up">Owner sign up</string>
+    <string name="guest_comment">Guest comment</string>
 </resources>
