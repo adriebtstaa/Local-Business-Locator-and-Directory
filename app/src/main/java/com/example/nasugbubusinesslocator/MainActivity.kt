@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -25,6 +28,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @Suppress("unused")
@@ -52,7 +57,7 @@ abstract class Business(
         reviews.add(review)
     }
 
-    fun getAllPhotos(): List<String> = photos.ifEmpty { listOf(imageName) }
+    fun getAllPhotos(): List<String> = photos
 
     fun getReviews(): List<Review> = reviews.toList()
 
@@ -173,25 +178,7 @@ abstract class User(
     val email: String,
     private var password: String
 ) {
-    fun checkPassword(input: String): Boolean {
-        return input == password
-    }
-
     abstract fun getRole(): String
-}
-
-@Suppress("unused")
-class BusinessOwner(
-    name: String,
-    email: String,
-    password: String,
-    val businessNameOwned: String
-) : User(name, email, password) {
-    override fun getRole(): String = "Business Owner"
-
-    fun registerBusiness(business: Business): String {
-        return "$name registered business: ${business.name}"
-    }
 }
 
 class GuestUser(
@@ -202,15 +189,17 @@ class GuestUser(
     override fun getRole(): String = "Guest"
 
     override suspend fun postComment(business: Business, commentText: String, rating: Int, database: AppDatabase) {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val currentDate = dateFormat.format(Date())
         val reviewEntity = ReviewEntity(
             businessId = business.id,
             guestName = name,
             commentText = commentText,
             rating = rating,
-            date = "2026-11-15"
+            date = currentDate
         )
         database.reviewDao().insertReview(reviewEntity)
-        business.addReview(Review(guestName = name, commentText = commentText, rating = rating, date = "2026-11-15"))
+        business.addReview(Review(guestName = name, commentText = commentText, rating = rating, date = currentDate))
     }
 }
 
@@ -241,27 +230,27 @@ class BusinessDirectory {
     companion object {
         fun getInitialEntities(): List<BusinessEntity> {
             return listOf(
-                BusinessEntity(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "kawayan_cove.jpg", 14.1350, 120.6150, "kawayan_cove.jpg, cawayan_cove.jpg", hasBeachAccess = true, entranceFee = 150.0),
-                BusinessEntity(2, "Fortune Island Resort", "Maria Santos", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "Resort", "0917-000-0002", "fortune_island.jpg", 14.0580, 120.4870, "fortune_island.jpg", hasBeachAccess = true, entranceFee = 500.0),
-                BusinessEntity(3, "Calayo Beach Resort", "Pedro Reyes", "Calayo, Nasugbu, Batangas", "Calayo", "Resort", "0917-000-0003", "calayo.jpg", 14.1100, 120.6200, "calayo.jpg", hasBeachAccess = true, entranceFee = 100.0),
-                BusinessEntity(4, "Wawa Beach Resort", "Jose Ramos", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "wawa.jpg", 14.0800, 120.6400, "wawa.jpg", hasBeachAccess = true, entranceFee = 80.0),
-                BusinessEntity(5, "Papaya Beach Resort", "Liza Cruz", "Papaya, Nasugbu, Batangas", "Papaya", "Resort", "0917-000-0005", "papaya.jpg", 14.0900, 120.6000, "papaya.jpg", hasBeachAccess = true, entranceFee = 120.0),
-                BusinessEntity(6, "Jollibee Nasugbu", "Jollibee Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Food", "043-123-4567", "jollibee.jpg", 14.0700, 120.6350, "jollibee.jpg", cuisineType = "Fast Food"),
-                BusinessEntity(7, "McDonald's Nasugbu", "McDonald's Corp", "Nasugbu Town, Batangas", "Brgy. 3", "Food", "043-123-4568", "mcdonalds.jpg", 14.0690, 120.6330, "mcdonalds.jpg", cuisineType = "Fast Food"),
-                BusinessEntity(8, "Lomi House", "Ana Garcia", "Wawa, Nasugbu, Batangas", "Wawa", "Food", "0917-000-0008", "lomi.jpg", 14.0810, 120.6410, "lomi.jpg", cuisineType = "Filipino"),
-                BusinessEntity(9, "Nasugbu Public Market", "Municipality", "Brgy. 4, Nasugbu, Batangas", "Brgy. 4", "Shop", "043-123-4569", "market.jpg", 14.0725, 120.6345, "market.jpg", openingHours = "5AM - 6PM"),
-                BusinessEntity(10, "Puregold Nasugbu", "Puregold", "Nasugbu Town, Batangas", "Brgy. 3", "Shop", "043-123-4570", "puregold.jpg", 14.0680, 120.6360, "puregold.jpg", openingHours = "8AM - 9PM"),
-                BusinessEntity(11, "7-Eleven Nasugbu", "7-Eleven", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Shop", "043-123-4571", "seven_eleven.jpg", 14.0710, 120.6340, "seven_eleven.jpg", openingHours = "24 Hours"),
-                BusinessEntity(12, "Nasugbu Municipal Hall", "Municipality", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Shop", "043-123-4572", "municipal.jpg", 14.0730, 120.6310, "municipal.jpg", openingHours = "8AM - 5PM"),
-                BusinessEntity(13, "Kape Nasugbu", "Juan Santos", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Cafe", "0917-111-2222", "kape.jpg", 14.0715, 120.6348, "kape.jpg", specialty = "Barako Coffee", hasWifi = true),
-                BusinessEntity(14, "Seaside Brew", "Carla Reyes", "Wawa, Nasugbu, Batangas", "Wawa", "Cafe", "0917-333-4444", "seaside_brew.jpg", 14.0820, 120.6420, "seaside_brew.jpg", specialty = "Iced Latte", hasWifi = true),
-                BusinessEntity(15, "Mercury Drug Nasugbu", "Mercury Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Pharmacy", "043-987-6543", "mercury.jpg", 14.0705, 120.6355, "mercury.jpg", is24Hours = true),
-                BusinessEntity(16, "The Generics Pharmacy", "Gen Pharmacy", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Pharmacy", "043-555-1234", "generics.jpg", 14.0735, 120.6315, "generics.jpg", is24Hours = false)
+                BusinessEntity(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "", 14.1350, 120.6150, "", hasBeachAccess = true, entranceFee = 150.0),
+                BusinessEntity(2, "Fortune Island Resort", "Maria Santos", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "Resort", "0917-000-0002", "", 14.0580, 120.4870, "", hasBeachAccess = true, entranceFee = 500.0),
+                BusinessEntity(3, "Calayo Beach Resort", "Pedro Reyes", "Calayo, Nasugbu, Batangas", "Calayo", "Resort", "0917-000-0003", "", 14.1100, 120.6200, "", hasBeachAccess = true, entranceFee = 100.0),
+                BusinessEntity(4, "Wawa Beach Resort", "Jose Ramos", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "", 14.0800, 120.6400, "", hasBeachAccess = true, entranceFee = 80.0),
+                BusinessEntity(5, "Papaya Beach Resort", "Liza Cruz", "Papaya, Nasugbu, Batangas", "Papaya", "Resort", "0917-000-0005", "", 14.0900, 120.6000, "", hasBeachAccess = true, entranceFee = 120.0),
+                BusinessEntity(6, "Jollibee Nasugbu", "Jollibee Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Food", "043-123-4567", "", 14.0700, 120.6350, "", cuisineType = "Fast Food"),
+                BusinessEntity(7, "McDonald's Nasugbu", "McDonald's Corp", "Nasugbu Town, Batangas", "Brgy. 3", "Food", "043-123-4568", "", 14.0690, 120.6330, "", cuisineType = "Fast Food"),
+                BusinessEntity(8, "Lomi House", "Ana Garcia", "Wawa, Nasugbu, Batangas", "Wawa", "Food", "0917-000-0008", "", 14.0810, 120.6410, "", cuisineType = "Filipino"),
+                BusinessEntity(9, "Nasugbu Public Market", "Municipality", "Brgy. 4, Nasugbu, Batangas", "Brgy. 4", "Shop", "043-123-4569", "", 14.0725, 120.6345, "", openingHours = "5AM - 6PM"),
+                BusinessEntity(10, "Puregold Nasugbu", "Puregold", "Nasugbu Town, Batangas", "Brgy. 3", "Shop", "043-123-4570", "", 14.0680, 120.6360, "", openingHours = "8AM - 9PM"),
+                BusinessEntity(11, "7-Eleven Nasugbu", "7-Eleven", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Shop", "043-123-4571", "", 14.0710, 120.6340, "", openingHours = "24 Hours"),
+                BusinessEntity(12, "Nasugbu Municipal Hall", "Municipality", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Shop", "043-123-4572", "", 14.0730, 120.6310, "", openingHours = "8AM - 5PM"),
+                BusinessEntity(13, "Kape Nasugbu", "Juan Santos", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Cafe", "0917-111-2222", "", 14.0715, 120.6348, "", specialty = "Barako Coffee", hasWifi = true),
+                BusinessEntity(14, "Seaside Brew", "Carla Reyes", "Wawa, Nasugbu, Batangas", "Wawa", "Cafe", "0917-333-4444", "", 14.0820, 120.6420, "", specialty = "Iced Latte", hasWifi = true),
+                BusinessEntity(15, "Mercury Drug Nasugbu", "Mercury Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Pharmacy", "043-987-6543", "", 14.0705, 120.6355, "", is24Hours = true),
+                BusinessEntity(16, "The Generics Pharmacy", "Gen Pharmacy", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Pharmacy", "043-555-1234", "", 14.0735, 120.6315, "", is24Hours = false)
             )
         }
 
         fun entityToBusiness(entity: BusinessEntity): Business {
-            val photosList = if (entity.photosString.isNotBlank()) entity.photosString.split(",").map { it.trim() } else listOf(entity.imageName)
+            val photosList = if (entity.photosString.isNotBlank()) entity.photosString.split(",").map { it.trim() } else listOf()
             return when (entity.category) {
                 "Resort" -> Resort(entity.id, entity.name, entity.ownerName, entity.address, entity.barangay, entity.phone, entity.imageName, entity.latitude, entity.longitude, entity.hasBeachAccess, entity.entranceFee, photosList)
                 "Food" -> Restaurant(entity.id, entity.name, entity.ownerName, entity.address, entity.barangay, entity.phone, entity.imageName, entity.latitude, entity.longitude, entity.cuisineType, photosList)
@@ -281,13 +270,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private val directory = BusinessDirectory()
     private lateinit var adapter: BusinessAdapter
     private var currentList: List<Business> = listOf()
-    private val currentGuest = GuestUser("Guest User", "guest@gmail.com", "1234")
+    private lateinit var currentGuest: GuestUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         database = AppDatabase.getDatabase(this)
+
+        val userName = intent.getStringExtra("USER_NAME") ?: "Visitor"
+        val userEmail = intent.getStringExtra("USER_EMAIL") ?: "visitor@gmail.com"
+        currentGuest = GuestUser(userName, userEmail, "")
 
         lifecycleScope.launch(Dispatchers.IO) {
             val existing = database.businessDao().getAllBusinesses()
@@ -334,36 +327,96 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById<Button>(R.id.btnPharmacy).setOnClickListener { filterCategory("Pharmacy") }
 
         findViewById<Button>(R.id.btnOwnerSignUp).setOnClickListener {
-            val owner = BusinessOwner("New Owner", "owner@gmail.com", "1234", "My New Resort")
-            lifecycleScope.launch(Dispatchers.IO) {
-                database.userDao().insertUser(
-                    UserEntity(owner.email, owner.name, "1234", owner.getRole(), owner.businessNameOwned)
-                )
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, owner.registerBusiness(currentList.firstOrNull() ?: return@withContext), Toast.LENGTH_SHORT).show()
-                }
-            }
+            showBusinessOwnerRegistrationDialog()
         }
 
         findViewById<Button>(R.id.btnGuestComment).setOnClickListener {
             if (currentList.isNotEmpty()) {
-                val firstBusiness = currentList[0]
-                lifecycleScope.launch(Dispatchers.IO) {
-                    currentGuest.postComment(firstBusiness, "Beautiful place! I loved it!", 5, database)
-                    val updatedRevs = database.reviewDao().getReviewsForBusiness(firstBusiness.id)
-                    firstBusiness.setReviews(updatedRevs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Guest rated ${firstBusiness.name}: ${String.format(Locale.getDefault(), "%.1f", firstBusiness.getAverageRating())} stars",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        adapter.updateList(currentList)
-                        showBusinessInfo(firstBusiness)
-                    }
-                }
+                showAddReviewDialog(currentList[0])
+            } else {
+                Toast.makeText(this, "No businesses available to review", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun showBusinessOwnerRegistrationDialog() {
+        val context = this
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 40, 50, 10)
+        }
+
+        val ownerNameInput = EditText(context).apply { hint = "Owner Name"; setText(currentGuest.name) }
+        val emailInput = EditText(context).apply { hint = "Email or Contact Details"; setText(currentGuest.email) }
+        val bizNameInput = EditText(context).apply { hint = "Business Name" }
+
+        val categoryLabel = TextView(context).apply { text = "Category:"; setPadding(0, 10, 0, 0) }
+        val categorySpinner = Spinner(context).apply {
+            val categories = arrayOf("Resort", "Food", "Shop", "Cafe", "Pharmacy")
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, categories)
+        }
+
+        val addressInput = EditText(context).apply { hint = "Address / Location (e.g. Brgy. Bucana, Nasugbu)" }
+        val phoneInput = EditText(context).apply { hint = "Phone Number" }
+
+        layout.addView(ownerNameInput)
+        layout.addView(emailInput)
+        layout.addView(bizNameInput)
+        layout.addView(categoryLabel)
+        layout.addView(categorySpinner)
+        layout.addView(addressInput)
+        layout.addView(phoneInput)
+
+        AlertDialog.Builder(context)
+            .setTitle("Register New Business")
+            .setView(layout)
+            .setPositiveButton("Register") { _, _ ->
+                val ownerName = ownerNameInput.text.toString().trim()
+                val email = emailInput.text.toString().trim()
+                val bizName = bizNameInput.text.toString().trim()
+                val category = categorySpinner.selectedItem.toString()
+                val address = addressInput.text.toString().trim()
+                val phone = phoneInput.text.toString().trim()
+
+                if (ownerName.isNotEmpty() && email.isNotEmpty() && bizName.isNotEmpty() && address.isNotEmpty()) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        database.userDao().insertUser(
+                            UserEntity(email = email, name = ownerName, password = "", role = "Business Owner", businessNameOwned = bizName)
+                        )
+                        val newId = (System.currentTimeMillis() % 100000).toInt() + 200
+                        val entity = BusinessEntity(
+                            id = newId,
+                            name = bizName,
+                            ownerName = ownerName,
+                            address = address,
+                            barangay = "Nasugbu",
+                            category = category,
+                            phone = phone.ifEmpty { "N/A" },
+                            imageName = "",
+                            latitude = 14.0700 + (Math.random() * 0.02 - 0.01),
+                            longitude = 120.6300 + (Math.random() * 0.02 - 0.01),
+                            photosString = "",
+                            hasBeachAccess = category == "Resort",
+                            entranceFee = if (category == "Resort") 100.0 else 0.0,
+                            cuisineType = if (category == "Food") "Local" else "",
+                            openingHours = if (category == "Shop") "8AM - 8PM" else "",
+                            specialty = if (category == "Cafe") "Coffee" else "",
+                            hasWifi = category == "Cafe",
+                            is24Hours = category == "Pharmacy"
+                        )
+                        database.businessDao().insertBusinesses(listOf(entity))
+                        loadDataAndRefresh()
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Business '$bizName' registered and saved!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Please fill in all required fields", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private suspend fun loadDataAndRefresh() {
@@ -461,7 +514,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         "• ${r.guestName} (${r.rating}★, ${r.date}):\n  \"${r.commentText}\""
                     }
                 }
-                val photosStr = business.getAllPhotos().joinToString(", ")
 
                 val message = buildString {
                     append(business.getDisplayInfo())
@@ -469,8 +521,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     append("\nPhone: ${business.phone}")
                     append("\nOwner: ${business.ownerName}")
                     append("\nAverage Rating: ${String.format(Locale.getDefault(), "%.1f", avg)}★ (${business.getReviews().size} reviews)")
-                    append("\n\nPhotos: [$photosStr]")
-                    append("\n\n--- Reviews ---\n")
+                    append("\n\n--- Reviews & Ratings ---\n")
                     append(reviewsListStr)
                 }
 
@@ -478,7 +529,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     .setTitle(business.name)
                     .setMessage(message)
                     .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
-                    .setNeutralButton("Add Review") { _, _ ->
+                    .setNeutralButton("Write Review") { _, _ ->
                         showAddReviewDialog(business)
                     }
                     .show()
@@ -487,22 +538,50 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun showAddReviewDialog(business: Business) {
-        val input = EditText(this)
-        input.hint = "Write your review..."
-        AlertDialog.Builder(this)
-            .setTitle("Add Review for ${business.name}")
-            .setView(input)
-            .setPositiveButton("Submit") { _, _ ->
-                val text = input.text.toString()
-                if (text.isNotBlank()) {
+        val context = this
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 40, 50, 10)
+        }
+
+        val ratingLabel = TextView(context).apply { text = "Select Star Rating (1 to 5 stars):" }
+        val ratingSpinner = Spinner(context).apply {
+            val ratings = arrayOf("★★★★★ (5 Stars - Excellent)", "★★★★☆ (4 Stars - Very Good)", "★★★☆☆ (3 Stars - Good)", "★★☆☆☆ (2 Stars - Fair)", "★☆☆☆☆ (1 Star - Poor)")
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, ratings)
+            setSelection(0)
+        }
+
+        val commentInput = EditText(context).apply {
+            hint = "Write your review comment here..."
+        }
+
+        layout.addView(ratingLabel)
+        layout.addView(ratingSpinner)
+        layout.addView(commentInput)
+
+        AlertDialog.Builder(context)
+            .setTitle("Rate & Review ${business.name}")
+            .setView(layout)
+            .setPositiveButton("Submit Review") { _, _ ->
+                val commentText = commentInput.text.toString().trim()
+                val selectedIndex = ratingSpinner.selectedItemPosition
+                val rating = 5 - selectedIndex // 0 -> 5, 1 -> 4, 2 -> 3, 3 -> 2, 4 -> 1
+
+                if (commentText.isNotEmpty()) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        currentGuest.postComment(business, text, 5, database)
+                        currentGuest.postComment(business, commentText, rating, database)
+                        val updatedRevs = database.reviewDao().getReviewsForBusiness(business.id)
+                        business.setReviews(updatedRevs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
+
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@MainActivity, "Review added!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Review & $rating-star rating submitted successfully!", Toast.LENGTH_SHORT).show()
                             showBusinessInfo(business)
                             adapter.updateList(currentList)
+                            showMarkers()
                         }
                     }
+                } else {
+                    Toast.makeText(context, "Please write a comment", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)

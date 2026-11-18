@@ -5,22 +5,34 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.nasugbubusinesslocator.data.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WelcomeActivity : AppCompatActivity() {
+
+    private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_welcome)
 
+        database = AppDatabase.getDatabase(this)
+
         val startButton = findViewById<Button>(R.id.startButton)
         val subText = findViewById<TextView>(R.id.subText)
 
-        // BFF, 2 SECONDS LOGO LANG, TAPOS LABAS SI START!
         Handler(Looper.getMainLooper()).postDelayed({
             subText.visibility = View.VISIBLE
             startButton.visibility = View.VISIBLE
@@ -32,33 +44,154 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun showRoleDialog() {
-        // BFF, ETO YUNG POP-UP! HINDI NA KAILANGAN NG IBANG XML FILE!
-        val options = arrayOf("I'm a Business Owner", "I'm a User - Sign In", "Continue as Guest")
+        val options = arrayOf("I'm a Business Owner (Register Business)", "I'm a User - Sign In", "Continue as Guest")
 
         AlertDialog.Builder(this)
             .setTitle("Who are you?")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> {
-                        // BFF, OWNER! WALA PA TAYONG OWNER PAGE, KAYA TOAST MUNA!
-                        Toast.makeText(this, "Owner Login - Coming Soon!", Toast.LENGTH_SHORT).show()
-                        // BFF, PAG MAY OWNER PAGE NA KAYO, DITO NIYO ILALAGAY!
-                        // startActivity(Intent(this, OwnerLoginActivity::class.java))
-                    }
-                    1 -> {
-                        // BFF, USER!
-                        val intent = Intent(this, MainActivity::class.java)
-                        intent.putExtra("USER_TYPE", "USER")
-                        startActivity(intent)
-                    }
+                    0 -> showBusinessOwnerRegistrationDialog()
+                    1 -> showUserSignInDialog()
                     2 -> {
-                        // BFF, GUEST!
-                        val intent = Intent(this, MainActivity::class.java)
-                        intent.putExtra("USER_TYPE", "GUEST")
+                        val intent = Intent(this, MainActivity::class.java).apply {
+                            putExtra("USER_TYPE", "GUEST")
+                            putExtra("USER_NAME", "Guest User")
+                            putExtra("USER_EMAIL", "guest@gmail.com")
+                        }
                         startActivity(intent)
                     }
                 }
             }
+            .show()
+    }
+
+    private fun showUserSignInDialog() {
+        val context = this
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 40, 50, 10)
+        }
+
+        val nameInput = EditText(context).apply { hint = "Full Name" }
+        val emailInput = EditText(context).apply { hint = "Email or Contact Details" }
+
+        layout.addView(nameInput)
+        layout.addView(emailInput)
+
+        AlertDialog.Builder(context)
+            .setTitle("User Sign In")
+            .setView(layout)
+            .setPositiveButton("Sign In") { _, _ ->
+                val name = nameInput.text.toString().trim()
+                val email = emailInput.text.toString().trim()
+
+                if (name.isNotEmpty() && email.isNotEmpty()) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        database.userDao().insertUser(
+                            UserEntity(email = email, name = name, password = "", role = "USER")
+                        )
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(context, MainActivity::class.java).apply {
+                                putExtra("USER_TYPE", "USER")
+                                putExtra("USER_NAME", name)
+                                putExtra("USER_EMAIL", email)
+                            }
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Please enter name and email/contact", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showBusinessOwnerRegistrationDialog() {
+        val context = this
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 40, 50, 10)
+        }
+
+        val ownerNameInput = EditText(context).apply { hint = "Owner Name" }
+        val emailInput = EditText(context).apply { hint = "Email or Contact Details" }
+        val bizNameInput = EditText(context).apply { hint = "Business Name" }
+
+        val categoryLabel = TextView(context).apply { text = "Category:"; setPadding(0, 10, 0, 0) }
+        val categorySpinner = Spinner(context).apply {
+            val categories = arrayOf("Resort", "Food", "Shop", "Cafe", "Pharmacy")
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, categories)
+        }
+
+        val addressInput = EditText(context).apply { hint = "Address / Location (e.g. Brgy. Bucana, Nasugbu)" }
+        val phoneInput = EditText(context).apply { hint = "Phone Number" }
+
+        layout.addView(ownerNameInput)
+        layout.addView(emailInput)
+        layout.addView(bizNameInput)
+        layout.addView(categoryLabel)
+        layout.addView(categorySpinner)
+        layout.addView(addressInput)
+        layout.addView(phoneInput)
+
+        AlertDialog.Builder(context)
+            .setTitle("Business Owner Registration")
+            .setView(layout)
+            .setPositiveButton("Register & Save") { _, _ ->
+                val ownerName = ownerNameInput.text.toString().trim()
+                val email = emailInput.text.toString().trim()
+                val bizName = bizNameInput.text.toString().trim()
+                val category = categorySpinner.selectedItem.toString()
+                val address = addressInput.text.toString().trim()
+                val phone = phoneInput.text.toString().trim()
+
+                if (ownerName.isNotEmpty() && email.isNotEmpty() && bizName.isNotEmpty() && address.isNotEmpty()) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        database.userDao().insertUser(
+                            UserEntity(email = email, name = ownerName, password = "", role = "Business Owner", businessNameOwned = bizName)
+                        )
+                        val newId = (System.currentTimeMillis() % 100000).toInt() + 100
+                        val entity = BusinessEntity(
+                            id = newId,
+                            name = bizName,
+                            ownerName = ownerName,
+                            address = address,
+                            barangay = "Nasugbu",
+                            category = category,
+                            phone = phone.ifEmpty { "N/A" },
+                            imageName = "",
+                            latitude = 14.0700 + (Math.random() * 0.02 - 0.01),
+                            longitude = 120.6300 + (Math.random() * 0.02 - 0.01),
+                            photosString = "",
+                            hasBeachAccess = category == "Resort",
+                            entranceFee = if (category == "Resort") 100.0 else 0.0,
+                            cuisineType = if (category == "Food") "Local" else "",
+                            openingHours = if (category == "Shop") "8AM - 8PM" else "",
+                            specialty = if (category == "Cafe") "Coffee" else "",
+                            hasWifi = category == "Cafe",
+                            is24Hours = category == "Pharmacy"
+                        )
+                        database.businessDao().insertBusinesses(listOf(entity))
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Business '$bizName' registered successfully!", Toast.LENGTH_LONG).show()
+                            val intent = Intent(context, MainActivity::class.java).apply {
+                                putExtra("USER_TYPE", "OWNER")
+                                putExtra("USER_NAME", ownerName)
+                                putExtra("USER_EMAIL", email)
+                            }
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Please fill in all required fields", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 }
