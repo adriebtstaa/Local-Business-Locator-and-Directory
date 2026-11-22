@@ -240,7 +240,7 @@ class BusinessDirectory {
                 BusinessEntity(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "", 14.1350, 120.6150, "", hasBeachAccess = true, entranceFee = 150.0),
                 BusinessEntity(2, "Fortune Island Resort", "Maria Santos", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "Resort", "0917-000-0002", "", 14.0580, 120.4870, "", hasBeachAccess = true, entranceFee = 500.0),
                 BusinessEntity(3, "Calayo Beach Resort", "Pedro Reyes", "Calayo, Nasugbu, Batangas", "Calayo", "Resort", "0917-000-0003", "", 14.1100, 120.6200, "", hasBeachAccess = true, entranceFee = 100.0),
-                BusinessEntity(4, "Wawa Beach Resort", "Jose Ramos", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "", 14.0800, 120.6400, "", hasBeachAccess = true, entranceFee = 80.0),
+                BusinessEntity(4, "Canyon Cove Beach Club and Residences", "Jose Ramos", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "", 14.0800, 120.6400, "", hasBeachAccess = true, entranceFee = 80.0),
                 BusinessEntity(5, "Papaya Beach Resort", "Liza Cruz", "Papaya, Nasugbu, Batangas", "Papaya", "Resort", "0917-000-0005", "", 14.0900, 120.6000, "", hasBeachAccess = true, entranceFee = 120.0),
                 BusinessEntity(6, "Jollibee Nasugbu", "Jollibee Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Food", "043-123-4567", "", 14.0700, 120.6350, "", cuisineType = "Fast Food"),
                 BusinessEntity(7, "McDonald's Nasugbu", "McDonald's Corp", "Nasugbu Town, Batangas", "Brgy. 3", "Food", "043-123-4568", "", 14.0690, 120.6330, "", cuisineType = "Fast Food"),
