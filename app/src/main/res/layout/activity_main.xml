@@ -125,11 +125,22 @@
         android:layout_marginHorizontal="8dp"
         android:layout_marginVertical="4dp"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📋 Featured Business Listings &amp; Map Results"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="2dp"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerBusiness"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginHorizontal="8dp"/>
+        android:layout_marginHorizontal="8dp"
+        android:layout_weight="1" />
 
 </LinearLayout>
