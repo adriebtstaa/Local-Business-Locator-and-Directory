@@ -96,7 +96,7 @@ interface UserDao {
     suspend fun insertUser(user: UserEntity)
 }
 
-@Database(entities = [BusinessEntity::class, ReviewEntity::class, UserEntity::class, OwnerLogEntity::class], version = 1, exportSchema = false)
+@Database(entities = [BusinessEntity::class, ReviewEntity::class, UserEntity::class, OwnerLogEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun businessDao(): BusinessDao
     abstract fun reviewDao(): ReviewDao

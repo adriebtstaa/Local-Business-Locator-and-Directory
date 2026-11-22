@@ -237,7 +237,7 @@ class BusinessDirectory {
     companion object {
         fun getInitialEntities(): List<BusinessEntity> {
             return listOf(
-                BusinessEntity(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "", 14.1350, 120.6150, "", hasBeachAccess = true, entranceFee = 150.0),
+                BusinessEntity(1, "Kawayan Cove", "Juan Dela Cruz", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "", 14.1350, 120.6150, "https://www.google.com/imgres?q=jollibee%20nasugbu&imgurl=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D1802711868524611&imgrefurl=https%3A%2F%2Fwww.facebook.com%2Ftheactsmemorabilia%2Fphotos%2F1802711868524611%2F&docid=0P8fZZ8Fr5X-CM&tbnid=btuM_E99Q-HvuM&vet=12ahUKEwjuyZaf-ZqYAxWK4zQHHbPaCosQnPAOegQIOhAA..i&w=2048&h=1365&hcb=2&ved=2ahUKEwjuyZaf-ZqYAxWK4zQHHbPaCosQnPAOegQIOhAA", hasBeachAccess = true, entranceFee = 150.0),
                 BusinessEntity(2, "Fortune Island Resort", "Maria Santos", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "Resort", "0917-000-0002", "", 14.0580, 120.4870, "", hasBeachAccess = true, entranceFee = 500.0),
                 BusinessEntity(3, "Calayo Beach Resort", "Pedro Reyes", "Calayo, Nasugbu, Batangas", "Calayo", "Resort", "0917-000-0003", "", 14.1100, 120.6200, "", hasBeachAccess = true, entranceFee = 100.0),
                 BusinessEntity(4, "Canyon Cove Beach Club and Residences", "Jose Ramos", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "", 14.0800, 120.6400, "", hasBeachAccess = true, entranceFee = 80.0),
@@ -310,19 +310,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         findViewById<EditText>(R.id.searchEditText).addTextChangedListener { text ->
             lifecycleScope.launch(Dispatchers.IO) {
-                val query = text.toString()
-                val entities = database.businessDao().searchBusinesses(query)
-                val businesses = entities.map { entity ->
-                    val b = BusinessDirectory.entityToBusiness(entity)
-                    val revs = database.reviewDao().getReviewsForBusiness(b.id)
-                    b.setReviews(revs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
-                    b
-                }
-                withContext(Dispatchers.Main) {
-                    currentList = businesses
-                    adapter.updateList(currentList)
-                    showMarkers()
-                    updateDirectoryHeaderCount()
+                try {
+                    val query = text.toString()
+                    val entities = database.businessDao().searchBusinesses(query)
+                    val businesses = entities.map { entity ->
+                        val b = BusinessDirectory.entityToBusiness(entity)
+                        val revs = database.reviewDao().getReviewsForBusiness(b.id)
+                        b.setReviews(revs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
+                        b
+                    }
+                    withContext(Dispatchers.Main) {
+                        currentList = businesses
+                        adapter.updateList(currentList)
+                        showMarkers()
+                        updateDirectoryHeaderCount()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -452,22 +456,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun filterCategory(category: String) {
         Toast.makeText(this, "Filtering: $category", Toast.LENGTH_SHORT).show()
         lifecycleScope.launch(Dispatchers.IO) {
-            val entities = if (category == "All") {
-                database.businessDao().getAllBusinesses()
-            } else {
-                database.businessDao().getBusinessesByCategory(category)
-            }
-            val businesses = entities.map { entity ->
-                val b = BusinessDirectory.entityToBusiness(entity)
-                val revs = database.reviewDao().getReviewsForBusiness(b.id)
-                b.setReviews(revs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
-                b
-            }
-            withContext(Dispatchers.Main) {
-                currentList = businesses
-                adapter.updateList(currentList)
-                showMarkers()
-                updateDirectoryHeaderCount()
+            try {
+                val entities = if (category == "All") {
+                    database.businessDao().getAllBusinesses()
+                } else {
+                    database.businessDao().getBusinessesByCategory(category)
+                }
+                val businesses = entities.map { entity ->
+                    val b = BusinessDirectory.entityToBusiness(entity)
+                    val revs = database.reviewDao().getReviewsForBusiness(b.id)
+                    b.setReviews(revs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
+                    b
+                }
+                withContext(Dispatchers.Main) {
+                    currentList = businesses
+                    adapter.updateList(currentList)
+                    showMarkers()
+                    updateDirectoryHeaderCount()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -629,6 +637,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val rating: TextView = view.findViewById(R.id.textRating)
             val categoryAndAddress: TextView = view.findViewById(R.id.textCategoryAndAddress)
             val phone: TextView = view.findViewById(R.id.textPhone)
+            val thumbnail: android.widget.ImageView = view.findViewById(R.id.imageThumbnail)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -644,6 +653,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             holder.rating.text = String.format(Locale.getDefault(), "⭐ %.1f", b.getAverageRating())
             holder.categoryAndAddress.text = "${b.category} | ${b.address}"
             holder.phone.text = "📞 ${b.phone}"
+
+            when (b.category) {
+                "Resort" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_mapmode)
+                "Food" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_day)
+                "Shop" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_myplaces)
+                "Cafe" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_recent_history)
+                "Pharmacy" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_info_details)
+                else -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_gallery)
+            }
+
             holder.itemView.setOnClickListener { onClick(b) }
         }
 
@@ -651,7 +670,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         fun updateList(newList: List<Business>) {
             list = newList
-            notifyItemRangeChanged(0, list.size)
+            notifyDataSetChanged()
         }
     }
 }
