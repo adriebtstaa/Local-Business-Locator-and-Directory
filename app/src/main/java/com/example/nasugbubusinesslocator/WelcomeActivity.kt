@@ -44,18 +44,19 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun showRoleDialog() {
-        val options = arrayOf("I'm a Business Owner (Register Business)", "I'm a User - Sign In", "Continue as Guest")
+        val options = arrayOf("🏢 I'm a Business Owner (Register)", "👤 I'm a User - Sign In", "🌴 Continue as Guest")
 
         AlertDialog.Builder(this)
-            .setTitle("Who are you?")
+            .setTitle("✨ Welcome to Nasugbu! Who are you?")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> showBusinessOwnerRegistrationDialog()
                     1 -> showUserSignInDialog()
                     2 -> {
+                        Toast.makeText(this, "🌴 Welcome Guest Explorer!", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this, MainActivity::class.java).apply {
                             putExtra("USER_TYPE", "GUEST")
-                            putExtra("USER_NAME", "Guest User")
+                            putExtra("USER_NAME", "Guest Explorer")
                             putExtra("USER_EMAIL", "guest@gmail.com")
                         }
                         startActivity(intent)
@@ -72,16 +73,16 @@ class WelcomeActivity : AppCompatActivity() {
             setPadding(50, 40, 50, 10)
         }
 
-        val nameInput = EditText(context).apply { hint = "Full Name" }
-        val emailInput = EditText(context).apply { hint = "Email or Contact Details" }
+        val nameInput = EditText(context).apply { hint = "✨ Full Name" }
+        val emailInput = EditText(context).apply { hint = "📧 Email or Contact Details" }
 
         layout.addView(nameInput)
         layout.addView(emailInput)
 
         AlertDialog.Builder(context)
-            .setTitle("User Sign In")
+            .setTitle("👤 User Sign In")
             .setView(layout)
-            .setPositiveButton("Sign In") { _, _ ->
+            .setPositiveButton("Let's Explore 🚀") { _, _ ->
                 val name = nameInput.text.toString().trim()
                 val email = emailInput.text.toString().trim()
 
@@ -91,7 +92,7 @@ class WelcomeActivity : AppCompatActivity() {
                             UserEntity(email = email, name = name, password = "", role = "USER")
                         )
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "🎉 Welcome aboard, $name!", Toast.LENGTH_LONG).show()
                             val intent = Intent(context, MainActivity::class.java).apply {
                                 putExtra("USER_TYPE", "USER")
                                 putExtra("USER_NAME", name)
@@ -102,7 +103,7 @@ class WelcomeActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    Toast.makeText(context, "Please enter name and email/contact", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "⚠️ Please enter your name and email/contact", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -116,18 +117,18 @@ class WelcomeActivity : AppCompatActivity() {
             setPadding(50, 40, 50, 10)
         }
 
-        val ownerNameInput = EditText(context).apply { hint = "Owner Name" }
-        val emailInput = EditText(context).apply { hint = "Email or Contact Details" }
-        val bizNameInput = EditText(context).apply { hint = "Business Name" }
+        val ownerNameInput = EditText(context).apply { hint = "👤 Owner Name" }
+        val emailInput = EditText(context).apply { hint = "📧 Email or Contact" }
+        val bizNameInput = EditText(context).apply { hint = "🏢 Business Name (e.g. Sunset Cove Resort)" }
 
-        val categoryLabel = TextView(context).apply { text = "Category:"; setPadding(0, 10, 0, 0) }
+        val categoryLabel = TextView(context).apply { text = "🏷️ Select Business Category:"; setPadding(0, 10, 0, 0) }
         val categorySpinner = Spinner(context).apply {
             val categories = arrayOf("Resort", "Food", "Shop", "Cafe", "Pharmacy")
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, categories)
         }
 
-        val addressInput = EditText(context).apply { hint = "Address / Location (e.g. Brgy. Bucana, Nasugbu)" }
-        val phoneInput = EditText(context).apply { hint = "Phone Number" }
+        val addressInput = EditText(context).apply { hint = "📍 Address / Location (e.g. Brgy. Bucana)" }
+        val phoneInput = EditText(context).apply { hint = "📞 Phone Number" }
 
         layout.addView(ownerNameInput)
         layout.addView(emailInput)
@@ -138,9 +139,9 @@ class WelcomeActivity : AppCompatActivity() {
         layout.addView(phoneInput)
 
         AlertDialog.Builder(context)
-            .setTitle("Business Owner Registration")
+            .setTitle("🏢 Business Owner Registration")
             .setView(layout)
-            .setPositiveButton("Register & Save") { _, _ ->
+            .setPositiveButton("Register & Publish 🚀") { _, _ ->
                 val ownerName = ownerNameInput.text.toString().trim()
                 val email = emailInput.text.toString().trim()
                 val bizName = bizNameInput.text.toString().trim()
@@ -177,7 +178,7 @@ class WelcomeActivity : AppCompatActivity() {
                         database.businessDao().insertBusinesses(listOf(entity))
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Business '$bizName' registered successfully!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "🌟 Success! Business '$bizName' is now live!", Toast.LENGTH_LONG).show()
                             val intent = Intent(context, MainActivity::class.java).apply {
                                 putExtra("USER_TYPE", "OWNER")
                                 putExtra("USER_NAME", ownerName)
@@ -188,7 +189,7 @@ class WelcomeActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    Toast.makeText(context, "Please fill in all required fields", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "⚠️ Please fill in all required fields", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)

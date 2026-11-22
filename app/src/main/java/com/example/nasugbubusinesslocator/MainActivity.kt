@@ -1,6 +1,8 @@
 package com.example.nasugbubusinesslocator
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -84,7 +86,7 @@ class Resort(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Resort", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "$name - Resort in $barangay | Entrance: P$entranceFee | Beach: $hasBeachAccess"
+        return "🏖️ $name - Resort in $barangay | Entrance: ₱$entranceFee | Beach Access: $hasBeachAccess"
     }
 }
 
@@ -102,7 +104,7 @@ class Restaurant(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Food", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "$name - $cuisineType Restaurant in $barangay"
+        return "🍽️ $name - $cuisineType Restaurant in $barangay"
     }
 }
 
@@ -120,7 +122,7 @@ class Shop(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Shop", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "$name - Shop in $barangay | Open: $openingHours"
+        return "🛍️ $name - Shop in $barangay | Open: $openingHours"
     }
 }
 
@@ -139,7 +141,7 @@ class Cafe(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Cafe", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "$name - Cafe in $barangay | Specialty: $specialty | WiFi: $hasWifi"
+        return "☕ $name - Cafe in $barangay | Specialty: $specialty | WiFi: $hasWifi"
     }
 }
 
@@ -157,7 +159,7 @@ class Pharmacy(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Pharmacy", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "$name - Pharmacy in $barangay | 24 Hours: $is24Hours"
+        return "💊 $name - Pharmacy in $barangay | 24 Hours: $is24Hours"
     }
 }
 
@@ -170,7 +172,12 @@ data class Review(
     val commentText: String,
     val rating: Int,
     val date: String
-)
+) {
+    fun getStarString(): String {
+        val stars = "★★★★★".take(rating) + "☆☆☆☆☆".drop(rating)
+        return stars
+    }
+}
 
 @Suppress("unused")
 abstract class User(
@@ -315,6 +322,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     currentList = businesses
                     adapter.updateList(currentList)
                     showMarkers()
+                    updateDirectoryHeaderCount()
                 }
             }
         }
@@ -368,9 +376,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         layout.addView(phoneInput)
 
         AlertDialog.Builder(context)
-            .setTitle("Register New Business")
+            .setTitle("🏢 Register New Business")
             .setView(layout)
-            .setPositiveButton("Register") { _, _ ->
+            .setPositiveButton("Register & Save") { _, _ ->
                 val ownerName = ownerNameInput.text.toString().trim()
                 val email = emailInput.text.toString().trim()
                 val bizName = bizNameInput.text.toString().trim()
@@ -408,7 +416,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         loadDataAndRefresh()
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Business '$bizName' registered and saved!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "🎉 Business '$bizName' registered successfully!", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
@@ -417,6 +425,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun updateDirectoryHeaderCount() {
+        val subtitle = findViewById<TextView>(R.id.textDirectorySubtitle)
+        subtitle?.text = "Showing ${currentList.size} businesses in Nasugbu, Batangas"
     }
 
     private suspend fun loadDataAndRefresh() {
@@ -432,10 +445,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         withContext(Dispatchers.Main) {
             adapter.updateList(currentList)
             showMarkers()
+            updateDirectoryHeaderCount()
         }
     }
 
     private fun filterCategory(category: String) {
+        Toast.makeText(this, "Filtering: $category", Toast.LENGTH_SHORT).show()
         lifecycleScope.launch(Dispatchers.IO) {
             val entities = if (category == "All") {
                 database.businessDao().getAllBusinesses()
@@ -452,6 +467,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 currentList = businesses
                 adapter.updateList(currentList)
                 showMarkers()
+                updateDirectoryHeaderCount()
             }
         }
     }
@@ -508,32 +524,48 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             withContext(Dispatchers.Main) {
                 val avg = business.getAverageRating()
                 val reviewsListStr = if (business.getReviews().isEmpty()) {
-                    "No reviews yet."
+                    "No reviews yet. Be the first to review!"
                 } else {
                     business.getReviews().joinToString("\n\n") { r ->
-                        "• ${r.guestName} (${r.rating}★, ${r.date}):\n  \"${r.commentText}\""
+                        "• ${r.guestName} (${r.getStarString()} ${r.rating}★, ${r.date}):\n  \"${r.commentText}\""
                     }
                 }
 
                 val message = buildString {
                     append(business.getDisplayInfo())
-                    append("\n\nAddress: ${business.address}")
-                    append("\nPhone: ${business.phone}")
-                    append("\nOwner: ${business.ownerName}")
-                    append("\nAverage Rating: ${String.format(Locale.getDefault(), "%.1f", avg)}★ (${business.getReviews().size} reviews)")
+                    append("\n\n📍 Address: ${business.address}")
+                    append("\n📞 Phone: ${business.phone}")
+                    append("\n👤 Owner: ${business.ownerName}")
+                    append("\n⭐ Average Rating: ${String.format(Locale.getDefault(), "%.1f", avg)}★ (${business.getReviews().size} reviews)")
                     append("\n\n--- Reviews & Ratings ---\n")
                     append(reviewsListStr)
                 }
 
                 AlertDialog.Builder(this@MainActivity)
-                    .setTitle(business.name)
+                    .setTitle("🏢 ${business.name}")
                     .setMessage(message)
-                    .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
-                    .setNeutralButton("Write Review") { _, _ ->
+                    .setPositiveButton("Close", null)
+                    .setNeutralButton("✍️ Write Review") { _, _ ->
                         showAddReviewDialog(business)
+                    }
+                    .setNegativeButton("🧭 Get Directions / Route") { _, _ ->
+                        openDirections(business)
                     }
                     .show()
             }
+        }
+    }
+
+    private fun openDirections(business: Business) {
+        val gmmIntentUri = Uri.parse("google.navigation:q=${business.latitude},${business.longitude}")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+        mapIntent.setPackage("com.google.android.apps.maps")
+        try {
+            startActivity(mapIntent)
+        } catch (e: Exception) {
+            val webUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}")
+            val webIntent = Intent(Intent.ACTION_VIEW, webUri)
+            startActivity(webIntent)
         }
     }
 
@@ -560,12 +592,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         layout.addView(commentInput)
 
         AlertDialog.Builder(context)
-            .setTitle("Rate & Review ${business.name}")
+            .setTitle("⭐ Rate & Review ${business.name}")
             .setView(layout)
             .setPositiveButton("Submit Review") { _, _ ->
                 val commentText = commentInput.text.toString().trim()
                 val selectedIndex = ratingSpinner.selectedItemPosition
-                val rating = 5 - selectedIndex // 0 -> 5, 1 -> 4, 2 -> 3, 3 -> 2, 4 -> 1
+                val rating = 5 - selectedIndex
 
                 if (commentText.isNotEmpty()) {
                     lifecycleScope.launch(Dispatchers.IO) {
@@ -574,7 +606,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         business.setReviews(updatedRevs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Review & $rating-star rating submitted successfully!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "🎉 Review & $rating-star rating submitted!", Toast.LENGTH_SHORT).show()
                             showBusinessInfo(business)
                             adapter.updateList(currentList)
                             showMarkers()
@@ -593,21 +625,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         private val onClick: (Business) -> Unit
     ) : RecyclerView.Adapter<BusinessAdapter.ViewHolder>() {
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val name: TextView = view.findViewById(android.R.id.text1)
-            val desc: TextView = view.findViewById(android.R.id.text2)
+            val name: TextView = view.findViewById(R.id.textBusinessName)
+            val rating: TextView = view.findViewById(R.id.textRating)
+            val categoryAndAddress: TextView = view.findViewById(R.id.textCategoryAndAddress)
+            val phone: TextView = view.findViewById(R.id.textPhone)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
-                .inflate(android.R.layout.simple_list_item_2, parent, false)
+                .inflate(R.layout.item_business, parent, false)
             return ViewHolder(view)
         }
 
         @SuppressLint("DefaultLocale")
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val b = list[position]
-            holder.name.text = String.format(Locale.getDefault(), "%s - %.1f★", b.name, b.getAverageRating())
-            holder.desc.text = "${b.category} | ${b.address}"
+            holder.name.text = b.name
+            holder.rating.text = String.format(Locale.getDefault(), "⭐ %.1f", b.getAverageRating())
+            holder.categoryAndAddress.text = "${b.category} | ${b.address}"
+            holder.phone.text = "📞 ${b.phone}"
             holder.itemView.setOnClickListener { onClick(b) }
         }
 
