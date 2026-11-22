@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Welcome to PinBiz"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#1E2235"
+        android:gravity="center"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please select your role to continue"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnRoleOwner"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Register as Business Owner"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#283593"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"/>
+
+    <Button
+        android:id="@+id/btnRoleUser"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Sign In as User"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#3F51B5"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"/>
+
+    <Button
+        android:id="@+id/btnRoleGuest"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Continue as Guest"
+        android:textColor="#333333"
+        android:backgroundTint="#E0E0E0"
+        android:textStyle="bold"/>
+
+</LinearLayout>

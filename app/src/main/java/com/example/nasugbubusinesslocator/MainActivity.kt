@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -33,6 +34,44 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+fun ImageView.loadUrl(url: String) {
+    if (url.isBlank() || !url.startsWith("http")) return
+    setImageResource(android.R.drawable.ic_menu_gallery)
+    kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+        try {
+            var currentUrl = url
+            var bitmap: android.graphics.Bitmap? = null
+            for (i in 0..3) {
+                val connection = java.net.URL(currentUrl).openConnection() as java.net.HttpURLConnection
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                connection.instanceFollowRedirects = false
+                connection.connectTimeout = 8000
+                connection.readTimeout = 8000
+                val responseCode = connection.responseCode
+                if (responseCode == java.net.HttpURLConnection.HTTP_MOVED_TEMP ||
+                    responseCode == java.net.HttpURLConnection.HTTP_MOVED_PERM ||
+                    responseCode == java.net.HttpURLConnection.HTTP_SEE_OTHER) {
+                    val nextUrl = connection.getHeaderField("Location")
+                    if (nextUrl != null) {
+                        currentUrl = nextUrl
+                        continue
+                    }
+                }
+                val inputStream = connection.inputStream
+                bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+                break
+            }
+            if (bitmap != null) {
+                withContext(Dispatchers.Main) {
+                    setImageBitmap(bitmap)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
 
 @Suppress("unused")
 abstract class Business(
@@ -86,7 +125,7 @@ class Resort(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Resort", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "🏖️ $name - Resort in $barangay | Entrance: ₱$entranceFee | Beach Access: $hasBeachAccess"
+        return "$name - Resort in $barangay | Entrance: ₱$entranceFee | Beach Access: $hasBeachAccess"
     }
 }
 
@@ -104,7 +143,7 @@ class Restaurant(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Food", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "🍽️ $name - $cuisineType Restaurant in $barangay"
+        return "$name - $cuisineType Restaurant in $barangay"
     }
 }
 
@@ -122,7 +161,7 @@ class Shop(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Shop", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "🛍️ $name - Shop in $barangay | Open: $openingHours"
+        return "$name - Shop in $barangay | Open: $openingHours"
     }
 }
 
@@ -141,7 +180,7 @@ class Cafe(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Cafe", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "☕ $name - Cafe in $barangay | Specialty: $specialty | WiFi: $hasWifi"
+        return "$name - Cafe in $barangay | Specialty: $specialty | WiFi: $hasWifi"
     }
 }
 
@@ -159,7 +198,7 @@ class Pharmacy(
     photos: List<String> = listOf()
 ) : Business(id, name, ownerName, address, barangay, "Pharmacy", phone, imageName, latitude, longitude, photos) {
     override fun getDisplayInfo(): String {
-        return "💊 $name - Pharmacy in $barangay | 24 Hours: $is24Hours"
+        return "$name - Pharmacy in $barangay | 24 Hours: $is24Hours"
     }
 }
 
@@ -237,21 +276,22 @@ class BusinessDirectory {
     companion object {
         fun getInitialEntities(): List<BusinessEntity> {
             return listOf(
-                BusinessEntity(1, "Kawayan Cove", "Jose G. Puyat", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "", 14.1350, 120.6150, "https://www.google.com/_blob/5d3160d6604347ccc232129979240222, https://www.google.com/_blob/b33082053cc67b0d21d8b3897cc00614", hasBeachAccess = true, entranceFee = 150.0),
-                BusinessEntity(2, "Fortune Island Resort", "Jose Antonio Leviste", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "Resort", "0917-000-0002", "", 14.0580, 120.4870, "https://www.google.com/_blob/ded849771f379e4d5055da62a5c818ab, https://www.google.com/_blob/bad2e9ff6f5e8df3549fb515e40235d5", hasBeachAccess = true, entranceFee = 500.0),
-                BusinessEntity(3, "Calayo Beach Resort", "", "Calayo, Nasugbu, Batangas", "Calayo", "Resort", "0917-000-0003", "", 14.1100, 120.6200, "https://www.google.com/_blob/83ac4008f568eeae1990636c55bb296c, https://www.google.com/_blob/0561d219560692e363d2b8af4af9f886", hasBeachAccess = true, entranceFee = 100.0),
-                BusinessEntity(4, "Canyon Cove Beach Club and Residences", "George Go", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "", 14.0800, 120.6400, "https://www.google.com/_blob/edb639d3ec7dee9a8d58d14e1e55fd9f, https://www.google.com/_blob/9d55c3c5abd8e569a95c538d64dd5aea", hasBeachAccess = true, entranceFee = 80.0),
-                BusinessEntity(5, "Papaya Beach Resort", "Michael SikSik", "Papaya, Nasugbu, Batangas", "Papaya", "Resort", "0917-000-0005", "", 14.0900, 120.6000, "https://www.google.com/_blob/48a5a15e852164ebdae5207406f8f525, https://www.google.com/_blob/063ca421669ff619d51619db6dcce630", hasBeachAccess = true, entranceFee = 120.0),
-                BusinessEntity(6, "Jollibee Nasugbu", "Jollibee Foods Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Food", "043-123-4567", "", 14.0700, 120.6350, "https://www.google.com/_blob/3d3bc978d10e55eae02067aa1d6523f4, https://www.google.com/_blob/5c61ccb6f3d1bd8eea2ab49d839b23c0", cuisineType = "Fast Food"),
-                BusinessEntity(7, "McDonald's Nasugbu", "Golden Arches Development Corporation", "Nasugbu Town, Batangas", "Brgy. 3", "Food", "043-123-4568", "", 14.0690, 120.6330, "https://www.google.com/_blob/86403cfa27ce61ca1d3667f485d79142, https://www.google.com/_blob/470892641917cf65864d9c8a052f6a6a", cuisineType = "Fast Food"),
-                BusinessEntity(8, "Bayani’s Lomi House & Restaurant - Nasugbu", "", "Wawa, Nasugbu, Batangas", "Wawa", "Food", "0917-000-0008", "", 14.0810, 120.6410, "https://www.google.com/_blob/68748a967c9dc36c02f23fbda93a582b, https://www.google.com/_blob/697738c1c8325688a4c06c4a020d1abf", cuisineType = "Filipino"),
-                BusinessEntity(9, "Nasugbu Public Market", "Municipality of Nasugbu", "Brgy. 4, Nasugbu, Batangas", "Brgy. 4", "Shop", "043-123-4569", "", 14.0725, 120.6345, "https://www.google.com/_blob/64b02d610c7ff07eadcfec50d8351895, https://www.google.com/_blob/334cdf8b509937de3f2c672f3ea28b6b", openingHours = "5AM - 6PM"),
-                BusinessEntity(10, "Puregold Nasugbu", "Puregold Price Club Inc", "Nasugbu Town, Batangas", "Brgy. 3", "Shop", "043-123-4570", "", 14.0680, 120.6360, "https://www.google.com/_blob/3fba656069d42bc6cd9884aa112d5d4a, https://www.google.com/_blob/414354d4da8c03f0ea722a2ac7c6939e", openingHours = "8AM - 9PM"),
-                BusinessEntity(11, "7-Eleven Nasugbu", "Philippine Seven Corporation", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Shop", "043-123-4571", "", 14.0710, 120.6340, "https://www.google.com/_blob/11f1192e3329c248cb1f7c28c8d7a78c, https://www.google.com/_blob/2c7afa8afc586223b0cc0f8f534eb172", openingHours = "24 Hours"),
-                BusinessEntity(13, "Kape Nasugbu", "", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Cafe", "0917-111-2222", "", 14.0715, 120.6348, "https://www.google.com/_blob/7b621d2c473845c6f2c134d43fd5be71", specialty = "Barako Coffee", hasWifi = true),
-                BusinessEntity(14, "Seaside Brew", "", "Wawa, Nasugbu, Batangas", "Wawa", "Cafe", "0917-333-4444", "", 14.0820, 120.6420, "https://www.google.com/_blob/811ef66a0bb01b1bb295146b40877374", specialty = "Iced Latte", hasWifi = true),
-                BusinessEntity(15, "Mercury Drug Nasugbu", "Mercury Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Pharmacy", "043-987-6543", "", 14.0705, 120.6355, "https://www.google.com/_blob/0f6555250bf3cf30299149d070bd6293, https://www.google.com/_blob/9c09c3865801b4f620a59376db0f6afa", is24Hours = true),
-                BusinessEntity(16, "The Generics Pharmacy", "LIAHDO Corp", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Pharmacy", "043-555-1234", "", 14.0735, 120.6315, "https://www.google.com/_blob/1ea3a983307d8300a59203100d9d8aac", is24Hours = false)
+                BusinessEntity(1, "Kawayan Cove", "Jose G. Puyat", "Bucana, Nasugbu, Batangas", "Bucana", "Resort", "0917-000-0001", "", 14.1350, 120.6150, "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=800", entranceFee = 150.0),
+                BusinessEntity(2, "Fortune Island Resort", "Jose Antonio Leviste", "Fortune Island, Nasugbu, Batangas", "Fortune Island", "Resort", "0917-000-0002", "", 14.0580, 120.4870, "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", entranceFee = 500.0),
+                BusinessEntity(3, "Calayo Beach Resort", "", "Calayo, Nasugbu, Batangas", "Calayo", "Resort", "0917-000-0003", "", 14.1100, 120.6200, "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800", entranceFee = 100.0),
+                BusinessEntity(4, "Canyon Cove Beach Club and Residences", "George Go", "Wawa, Nasugbu, Batangas", "Wawa", "Resort", "0917-000-0004", "", 14.0800, 120.6400, "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800", entranceFee = 80.0),
+                BusinessEntity(5, "Papaya Beach Resort", "Michael SikSik", "Papaya, Nasugbu, Batangas", "Papaya", "Resort", "0917-000-0005", "", 14.0900, 120.6000, "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800", entranceFee = 120.0),
+                BusinessEntity(6, "Jollibee Nasugbu", "Jollibee Foods Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Food", "043-123-4567", "", 14.0700, 120.6350, "https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=800", cuisineType = "Fast Food"),
+                BusinessEntity(7, "McDonald's Nasugbu", "Golden Arches Development Corporation", "Nasugbu Town, Batangas", "Brgy. 3", "Food", "043-123-4568", "", 14.0690, 120.6330, "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800", cuisineType = "Fast Food"),
+                BusinessEntity(8, "Bayani’s Lomi House & Restaurant - Nasugbu", "", "Wawa, Nasugbu, Batangas", "Wawa", "Food", "0917-000-0008", "", 14.0810, 120.6410, "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800", cuisineType = "Filipino"),
+                BusinessEntity(9, "Nasugbu Public Market", "Municipality of Nasugbu", "Brgy. 4, Nasugbu, Batangas", "Brgy. 4", "Shop", "043-123-4569", "", 14.0725, 120.6345, "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800", openingHours = "5AM - 6PM"),
+                BusinessEntity(10, "Puregold Nasugbu", "Puregold Price Club Inc", "Nasugbu Town, Batangas", "Brgy. 3", "Shop", "043-123-4570", "", 14.0680, 120.6360, "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=800", openingHours = "8AM - 9PM"),
+                BusinessEntity(11, "7-Eleven Nasugbu", "Philippine Seven Corporation", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Shop", "043-123-4571", "", 14.0710, 120.6340, "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800", openingHours = "24 Hours"),
+                BusinessEntity(12, "Nasugbu Municipal Hall", "Municipality", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Shop", "043-123-4572", "", 14.0730, 120.6310, "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800", openingHours = "8AM - 5PM"),
+                BusinessEntity(13, "Kape Nasugbu", "", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Cafe", "0917-111-2222", "", 14.0715, 120.6348, "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800", specialty = "Barako Coffee",),
+                BusinessEntity(14, "Seaside Brew", "", "Wawa, Nasugbu, Batangas", "Wawa", "Cafe", "0917-333-4444", "", 14.0820, 120.6420, "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800", specialty = "Iced Latte"),
+                BusinessEntity(15, "Mercury Drug Nasugbu", "Mercury Corp", "Brgy. 3, Nasugbu, Batangas", "Brgy. 3", "Pharmacy", "043-987-6543", "", 14.0705, 120.6355, "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800"),
+                BusinessEntity(16, "The Generics Pharmacy", "LIAHDO Corp", "Brgy. 2, Nasugbu, Batangas", "Brgy. 2", "Pharmacy", "043-555-1234", "", 14.0735, 120.6315, "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800")
             )
         }
 
@@ -289,10 +329,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         currentGuest = GuestUser(userName, userEmail, "")
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val existing = database.businessDao().getAllBusinesses()
-            if (existing.isEmpty()) {
-                database.businessDao().insertBusinesses(BusinessDirectory.getInitialEntities())
-            }
+            database.businessDao().insertBusinesses(BusinessDirectory.getInitialEntities())
             loadDataAndRefresh()
         }
 
@@ -379,7 +416,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         layout.addView(phoneInput)
 
         AlertDialog.Builder(context)
-            .setTitle("🏢 Register New Business")
+            .setTitle("Register New Business")
             .setView(layout)
             .setPositiveButton("Register & Save") { _, _ ->
                 val ownerName = ownerNameInput.text.toString().trim()
@@ -419,7 +456,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         loadDataAndRefresh()
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "🎉 Business '$bizName' registered successfully!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Business '$bizName' registered successfully!", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
@@ -506,6 +543,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.mapType = GoogleMap.MAP_TYPE_HYBRID // Enables Satellite + Hybrid view showing actual real buildings, roofs, and terrain!
         mMap.setOnMarkerClickListener { marker ->
             val business = marker.tag as? Business
             if (business != null) {
@@ -529,7 +567,62 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             business.setReviews(revs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
 
             withContext(Dispatchers.Main) {
+                val dialogView = LayoutInflater.from(this@MainActivity).inflate(R.layout.dialog_business_info, null)
+
+                val imgBanner = dialogView.findViewById<ImageView>(R.id.dialogImageBanner)
+                val badgeCategory = dialogView.findViewById<TextView>(R.id.dialogBadgeCategory)
+                val textName = dialogView.findViewById<TextView>(R.id.dialogTextName)
+                val textDisplayInfo = dialogView.findViewById<TextView>(R.id.dialogTextDisplayInfo)
+                val textDetails = dialogView.findViewById<TextView>(R.id.dialogTextDetails)
+                val textReviews = dialogView.findViewById<TextView>(R.id.dialogTextReviews)
+                val btnDirections = dialogView.findViewById<Button>(R.id.dialogBtnDirections)
+                val btnReview = dialogView.findViewById<Button>(R.id.dialogBtnReview)
+                val btnClose = dialogView.findViewById<Button>(R.id.dialogBtnClose)
+
+                textName.text = business.name
+                textDisplayInfo.text = business.getDisplayInfo()
+                badgeCategory.text = business.category.uppercase()
+
+                val photoUrl = business.getAllPhotos().firstOrNull() ?: ""
+                if (photoUrl.startsWith("http")) {
+                    imgBanner.loadUrl(photoUrl)
+                }
+                
+                when (business.category) {
+                    "Resort" -> {
+                        imgBanner.setBackgroundResource(R.drawable.bg_banner_resort)
+                        imgBanner.setImageResource(android.R.drawable.ic_menu_mapmode)
+                    }
+                    "Food" -> {
+                        imgBanner.setBackgroundResource(R.drawable.bg_banner_food)
+                        imgBanner.setImageResource(android.R.drawable.ic_menu_day)
+                    }
+                    "Shop" -> {
+                        imgBanner.setBackgroundResource(R.drawable.bg_banner_shop)
+                        imgBanner.setImageResource(android.R.drawable.ic_menu_myplaces)
+                    }
+                    "Cafe" -> {
+                        imgBanner.setBackgroundResource(R.drawable.bg_banner_cafe)
+                        imgBanner.setImageResource(android.R.drawable.ic_menu_recent_history)
+                    }
+                    "Pharmacy" -> {
+                        imgBanner.setBackgroundResource(R.drawable.bg_banner_shop)
+                        imgBanner.setImageResource(android.R.drawable.ic_menu_info_details)
+                    }
+                    else -> {
+                        imgBanner.setBackgroundResource(R.drawable.bg_banner_shop)
+                        imgBanner.setImageResource(android.R.drawable.ic_menu_gallery)
+                    }
+                }
+
                 val avg = business.getAverageRating()
+                textDetails.text = buildString {
+                    append("Address: ${business.address}\n")
+                    append("Phone: ${business.phone}\n")
+                    append("Owner: ${business.ownerName}\n")
+                    append("Average Rating: ${String.format(Locale.getDefault(), "%.1f", avg)}★ (${business.getReviews().size} reviews)")
+                }
+
                 val reviewsListStr = if (business.getReviews().isEmpty()) {
                     "No reviews yet. Be the first to review!"
                 } else {
@@ -537,28 +630,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         "• ${r.guestName} (${r.getStarString()} ${r.rating}★, ${r.date}):\n  \"${r.commentText}\""
                     }
                 }
+                textReviews.text = reviewsListStr
 
-                val message = buildString {
-                    append(business.getDisplayInfo())
-                    append("\n\n📍 Address: ${business.address}")
-                    append("\n📞 Phone: ${business.phone}")
-                    append("\n👤 Owner: ${business.ownerName}")
-                    append("\n⭐ Average Rating: ${String.format(Locale.getDefault(), "%.1f", avg)}★ (${business.getReviews().size} reviews)")
-                    append("\n\n--- Reviews & Ratings ---\n")
-                    append(reviewsListStr)
+                val dialog = AlertDialog.Builder(this@MainActivity)
+                    .setView(dialogView)
+                    .create()
+
+                btnDirections.setOnClickListener {
+                    openDirections(business)
                 }
 
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle("🏢 ${business.name}")
-                    .setMessage(message)
-                    .setPositiveButton("Close", null)
-                    .setNeutralButton("✍️ Write Review") { _, _ ->
-                        showAddReviewDialog(business)
-                    }
-                    .setNegativeButton("🧭 Get Directions / Route") { _, _ ->
-                        openDirections(business)
-                    }
-                    .show()
+                btnReview.setOnClickListener {
+                    dialog.dismiss()
+                    showAddReviewDialog(business)
+                }
+
+                btnClose.setOnClickListener {
+                    dialog.dismiss()
+                }
+
+                dialog.show()
             }
         }
     }
@@ -585,7 +676,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val ratingLabel = TextView(context).apply { text = "Select Star Rating (1 to 5 stars):" }
         val ratingSpinner = Spinner(context).apply {
-            val ratings = arrayOf("★★★★★ (5 Stars - Excellent)", "★★★★☆ (4 Stars - Very Good)", "★★★☆☆ (3 Stars - Good)", "★★☆☆☆ (2 Stars - Fair)", "★☆☆☆☆ (1 Star - Poor)")
+            val ratings = arrayOf("★★★★★ (5 Stars - Excellent)", "★★★★☆ (4 Stats - Very Good)", "★★★☆☆ (3 Stars - Good)", "★★☆☆☆ (2 Stars - Fair)", "★☆☆☆☆ (1 Star - Poor)")
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, ratings)
             setSelection(0)
         }
@@ -599,21 +690,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         layout.addView(commentInput)
 
         AlertDialog.Builder(context)
-            .setTitle("⭐ Rate & Review ${business.name}")
+            .setTitle("Rate & Review ${business.name}")
             .setView(layout)
             .setPositiveButton("Submit Review") { _, _ ->
-                val commentText = commentInput.text.toString().trim()
+                val commentContent = commentInput.text.toString().trim()
                 val selectedIndex = ratingSpinner.selectedItemPosition
                 val rating = 5 - selectedIndex
 
-                if (commentText.isNotEmpty()) {
+                if (commentContent.isNotEmpty()) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        currentGuest.postComment(business, commentText, rating, database)
+                        currentGuest.postComment(business, commentContent, rating, database)
                         val updatedRevs = database.reviewDao().getReviewsForBusiness(business.id)
                         business.setReviews(updatedRevs.map { Review(it.guestName, it.commentText, it.rating, it.date) })
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "🎉 Review & $rating-star rating submitted!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Review & $rating-star rating submitted!", Toast.LENGTH_SHORT).show()
                             showBusinessInfo(business)
                             adapter.updateList(currentList)
                             showMarkers()
@@ -621,6 +712,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                 } else {
                     Toast.makeText(context, "Please write a comment", Toast.LENGTH_SHORT).show()
+                    showAddReviewDialog(business)
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -636,7 +728,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val rating: TextView = view.findViewById(R.id.textRating)
             val categoryAndAddress: TextView = view.findViewById(R.id.textCategoryAndAddress)
             val phone: TextView = view.findViewById(R.id.textPhone)
-            val thumbnail: android.widget.ImageView = view.findViewById(R.id.imageThumbnail)
+            val thumbnail: ImageView = view.findViewById(R.id.imageThumbnail)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -645,7 +737,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             return ViewHolder(view)
         }
 
-        @SuppressLint("DefaultLocale")
+        @SuppressLint("ViewHolder")
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val b = list[position]
             holder.name.text = b.name
@@ -653,13 +745,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             holder.categoryAndAddress.text = "${b.category} | ${b.address}"
             holder.phone.text = "📞 ${b.phone}"
 
-            when (b.category) {
-                "Resort" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_mapmode)
-                "Food" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_day)
-                "Shop" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_myplaces)
-                "Cafe" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_recent_history)
-                "Pharmacy" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_info_details)
-                else -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_gallery)
+            val photoUrl = b.getAllPhotos().firstOrNull() ?: ""
+            if (photoUrl.startsWith("http")) {
+                holder.thumbnail.loadUrl(photoUrl)
+            } else {
+                when (b.category) {
+                    "Resort" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_mapmode)
+                    "Food" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_day)
+                    "Shop" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_myplaces)
+                    "Cafe" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_recent_history)
+                    "Pharmacy" -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_info_details)
+                    else -> holder.thumbnail.setImageResource(android.R.drawable.ic_menu_gallery)
+                }
             }
 
             holder.itemView.setOnClickListener { onClick(b) }
@@ -667,7 +764,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         override fun getItemCount() = list.size
 
-        fun updateList(newList: List<Business>) {
+        val updateList: (List<Business>) -> Unit = { newList ->
             list = newList
             notifyDataSetChanged()
         }

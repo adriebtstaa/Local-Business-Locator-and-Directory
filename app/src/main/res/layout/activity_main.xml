@@ -19,10 +19,19 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🌴 Nasugbu Business Directory"
-            android:textSize="20sp"
+            android:text="PinBiz"
+            android:textSize="28sp"
             android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed"
             android:textColor="@android:color/white"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nasugbu Business Locator &amp; Mapping System"
+            android:textSize="12sp"
+            android:textColor="#E0E0E0"
+            android:layout_marginTop="1dp"/>
 
         <TextView
             android:id="@+id/textDirectorySubtitle"
@@ -38,7 +47,7 @@
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="🔍 Search businesses by name or barangay..."
+        android:hint="Search businesses by name or barangay..."
         android:inputType="text"
         android:padding="12dp"
         android:layout_margin="8dp"
@@ -62,56 +71,56 @@
                 android:id="@+id/btnAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌐 All"
+                android:text="All"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnResort"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏖️ Resorts"
+                android:text="Resorts"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnFood"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🍽️ Food"
+                android:text="Food"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnMarket"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🛍️ Shops"
+                android:text="Shops"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnCafe"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="☕ Cafes"
+                android:text="Cafes"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnPharmacy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💊 Pharmacy"
+                android:text="Pharmacy"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnOwnerSignUp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏢 Register"
+                android:text="Register"
                 android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnGuestComment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="✍️ Review"/>
+                android:text="Review"/>
 
         </LinearLayout>
     </HorizontalScrollView>
@@ -128,7 +137,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📋 Featured Business Listings &amp; Map Results"
+        android:text="Featured Business Listings &amp; Map Results"
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="#333333"
