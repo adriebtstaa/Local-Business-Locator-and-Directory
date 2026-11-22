@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nasugbu Business Locator &amp; Mapping System"
+            android:text="Nasugbu Business Locator and Directory"
             android:textSize="12sp"
             android:textColor="#E0E0E0"
             android:layout_marginTop="1dp"/>
@@ -48,6 +48,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Search businesses by name or barangay..."
+        android:textColor="@android:color/black"
+        android:textColorHint="#757575"
         android:inputType="text"
         android:padding="12dp"
         android:layout_margin="8dp"

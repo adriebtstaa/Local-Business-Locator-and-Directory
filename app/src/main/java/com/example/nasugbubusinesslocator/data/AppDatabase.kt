@@ -15,7 +15,7 @@ data class BusinessEntity(
     val imageName: String,
     val latitude: Double,
     val longitude: Double,
-    val photosString: String,
+    val photosString: String = "",
     val hasBeachAccess: Boolean = false,
     val entranceFee: Double = 0.0,
     val cuisineType: String = "",

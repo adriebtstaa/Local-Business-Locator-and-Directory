@@ -38,7 +38,7 @@
         android:id="@+id/subText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nasugbu Business Locator &amp; Mapping System"
+        android:text="Nasugbu Business Locator and Directory"
         android:textSize="14sp"
         android:textColor="#3D4E40"
         android:textStyle="bold"

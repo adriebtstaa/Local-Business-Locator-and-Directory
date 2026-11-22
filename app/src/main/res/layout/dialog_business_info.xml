@@ -30,9 +30,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:src="@android:drawable/ic_menu_gallery"
-                    app:tint="@android:color/white"
-                    android:alpha="0.85"
                     android:contentDescription="Location Photo"/>
 
                 <!-- Gradient Overlay for aesthetics -->
